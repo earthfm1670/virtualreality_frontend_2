@@ -1,101 +1,159 @@
-import Image from "next/image";
+"use client";
+
+import { useState, useEffect } from "react";
+import { MovieCard } from "@/components/MovieCard";
+import { CartSummary } from "@/components/CartSummary";
+import dotenv from "dotenv";
+dotenv.config();
+
+interface Movie {
+  id: number;
+  title: string;
+  poster_path: string;
+  price: number;
+}
+
+interface CartItem extends Movie {
+  quantity: number;
+}
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const API_KEY = process.env.API_KEY
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  const [movies, setMovies] = useState<Movie[]>([]);
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [searchTerm, setSearchTerm] = useState<string>("");
+
+  // Render movies based on search terms input, render movies by popularity if no search input
+  useEffect(() => {
+    if (searchTerm) {
+      fetchMovies(searchTerm);
+    } else {
+      fetchPopularMovies();
+    }
+  }, [searchTerm]);
+
+  // If there are cart data in localStorage, CartSummary will render the cart data
+  useEffect(() => {
+    const savedCart = localStorage.getItem("cart");
+    if (savedCart) {
+      setCart(JSON.parse(savedCart));
+    }
+  }, []);
+
+  // Save the cart to localStorage everytime there is a new item in the cart
+  useEffect(() => {
+    localStorage.setItem("cart", JSON.stringify(cart));
+  }, [cart]);
+
+  // search movies based on search input
+  const fetchMovies = async (query: string) => {
+    try {
+      const response = await fetch(
+        `https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&query=${query}`
+      );
+      if (!response.ok) {
+        throw new Error("Failed to fetch movies");
+      }
+      const data = await response.json();
+      setMovies(
+        data.results
+          .map((movie: Movie) => ({
+            id: movie.id,
+            title: movie.title,
+            poster_path: movie.poster_path,
+            price: 0,
+          }))
+          .slice(0, 9)
+      );
+    } catch (error) {
+      console.error("Error fetching movies", error);
+      setMovies([]);
+    }
+  };
+
+  const fetchPopularMovies = async () => {
+    try {
+      const response = await fetch(
+        `https://api.themoviedb.org/3/movie/popular?api_key=${API_KEY}`
+      );
+      if (!response.ok) {
+        throw new Error("Failed to fetch popular movies");
+      }
+      const data = await response.json();
+      setMovies(
+        data.results
+          .map((movie: Movie) => ({
+            id: movie.id,
+            title: movie.title,
+            poster_path: movie.poster_path,
+            price: 0,
+          }))
+          .slice(0, 9)
+      );
+    } catch (error) {
+      console.error("Error fetching popular movies:", error);
+      setMovies([]);
+    }
+  };
+
+  const addToCart = (movie: Movie) => {
+    setCart((prevCart) => {
+      const existingItem = prevCart.find((item) => item.id === movie.id);
+      if (existingItem) {
+        return prevCart.map((item) =>
+          item.id === movie.id ? { ...item, quantity: item.quantity + 1 } : item
+        );
+      } else {
+        return [...prevCart, { ...movie, quantity: 1 }];
+      }
+    });
+  };
+
+  const updatePrice = (id: number, price: number) => {
+    setMovies((prevMovies) =>
+      prevMovies.map((movie) => (movie.id === id ? { ...movie, price } : movie))
+    );
+    setCart((prevCart) =>
+      prevCart.map((item) => (item.id === id ? { ...item, price } : item))
+    );
+  };
+
+  const clearCart = () => {
+    setCart([]);
+  };
+
+  return (
+    <div className="container mx-auto p-4">
+      <h1 className="text-4xl font-bold text-center mb-8">
+        VirtualReality Movie Store
+      </h1>
+      <div className="flex flex-row gap-8">
+        <div className="flex-grow">
+          <div className="mb-4">
+            <input
+              type="text"
+              placeholder="Search name of the movie..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full px-4 py-2 bg-gray-800 text-gray-100 rounded border border-gray-700 focus:outline-none focus:border-gray-500"
+            ></input>
+          </div>
+          <div className="grid grid-cols-3 gap-4">
+            {movies.map((movie) => (
+              <MovieCard
+                key={movie.id}
+                movie={movie}
+                onAddToCart={addToCart}
+                onUpdatePrice={updatePrice}
+              />
+            ))}
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        <div className="w-96">
+          <CartSummary cart={cart} onClearCart={clearCart} />
+        </div>
+      </div>
     </div>
   );
 }
