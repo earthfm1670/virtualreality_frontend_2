@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-// import { CheckoutModal } from "./CheckoutModal";
+import { CheckoutModal } from "./CheckoutModal";
 
 interface CartItem {
   id: number;
@@ -16,7 +16,7 @@ interface CartSummaryProps {
 }
 
 export function CartSummary({ cart, onClearCart }: CartSummaryProps) {
-    const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
   // to calculate total price and discount
   const subtotal = cart.reduce(
@@ -83,17 +83,20 @@ export function CartSummary({ cart, onClearCart }: CartSummaryProps) {
         >
           Clear Cart
         </button>
-        <button onClick={() => setIsModalOpen(true)} className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded transition-colors">
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded transition-colors"
+        >
           Checkout
         </button>
       </div>
       {isModalOpen && (
         <CheckoutModal
-        onClose={() => setIsModalOpen(false)}
-        subtotal={subtotal}
-        discountPercentage={discountPercentage}
-        discountAmount={discountAmount}
-        total={total}
+          onClose={() => setIsModalOpen(false)}
+          subtotal={subtotal}
+          discountPercentage={discountPercentage}
+          discountAmount={discountAmount}
+          total={total}
         />
       )}
     </div>
