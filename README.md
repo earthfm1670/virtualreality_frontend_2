@@ -16,11 +16,15 @@ npm install
 
 3. Setup environment variables
 
-```Create .env file in your root directory
+Create .env file in your root directory
+
+```
 touch .env
 ```
 
-```Add your API_KEY to .env file
+Add your API_KEY to .env file
+
+```
 NEXT_PUBLIC_API_KEY="your_api_key_here"
 ```
 
