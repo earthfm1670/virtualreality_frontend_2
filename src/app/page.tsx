@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { MovieCard } from "@/components/MovieCard";
-import { CartSummary } from "@/components/CartSummary";
+import {CartSummary} from "@/components/CartSummary"
 import dotenv from "dotenv";
 dotenv.config();
 
