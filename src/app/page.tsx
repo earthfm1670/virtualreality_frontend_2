@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { MovieCard } from "@/components/MovieCard";
-import {CartSummary} from "@/components/CartSummary"
+import { CartSummary } from "@/components/CartSummary";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -18,7 +18,7 @@ interface CartItem extends Movie {
 }
 
 export default function Home() {
-  const API_KEY = process.env.API_KEY;
+  const API_KEY = process.env.NEXT_PUBLIC_API_KEY;
 
   const [movies, setMovies] = useState<Movie[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);

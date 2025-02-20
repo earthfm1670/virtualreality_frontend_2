@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CheckoutModal } from "./CheckoutModal";
+// import { CheckoutModal } from "./CheckoutModal";
 
 interface CartItem {
   id: number;
