@@ -18,7 +18,7 @@ interface CartItem extends Movie {
 }
 
 export default function Home() {
-  const API_KEY = process.env.API_KEY
+  const API_KEY = process.env.API_KEY;
 
   const [movies, setMovies] = useState<Movie[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
